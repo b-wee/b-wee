@@ -15,9 +15,7 @@ store calendars (ICS feeds)          your browser
    events, classify titles)               store, casual-only)
 ```
 
-1. Each store gets one or more **event sources** — usually the ICS calendar
-   feed its website already publishes (Google Calendar, Squarespace, and Wix
-   all expose one).
+1. Each store gets one or more **event sources** (see import methods below).
 2. The **sync job** polls every feed, expands recurring events ("every
    Wednesday at 6pm"), and classifies each event by keyword — "Wednesday
    Night EDH" becomes *Magic: The Gathering / Commander / Casual*.
@@ -39,6 +37,41 @@ store calendars (ICS feeds)          your browser
   address, and a map link.
 - **iCal export** — `/events.ics` honors every filter, so you can subscribe
   to "casual Commander within 25 miles" from your phone's calendar app.
+
+## Import methods
+
+Three source kinds cover most local game stores:
+
+| Kind | What it reads | Typical stores |
+|---|---|---|
+| `ics` | An iCal/ICS calendar feed URL, with recurring-event (RRULE) expansion | Google Calendar, Squarespace, Wix — anything with a "subscribe to calendar" link |
+| `jsonld` | schema.org `Event` markup embedded in a store's events page (`<script type="application/ld+json">`) | Squarespace, Wix, and WordPress event plugins emit this automatically for SEO; works even when no feed is advertised |
+| manual | `weekly_events` entries in `data/stores.sample.json` ("every Wednesday at 6pm") | Stores whose schedule only exists as a flyer on the door |
+
+Prefer `ics` when a store has one (it's the most reliable), fall back to
+`jsonld` for stores that only have an events web page, and use manual
+entries as the last resort. Facebook events and Wizards EventLink have no
+public feed/API, so they'd need per-store arrangements — the adapter
+interface in `app/ingest/base.py` is the extension point if you get access.
+
+## Data freshness & caching at scale
+
+Browsing **never** hits store websites. All reads (pages, `/api/*`,
+`/events.ics`) are served from the local database, which acts as a cache
+of the upstream feeds:
+
+- Each source is re-fetched **at most once every 24 hours**
+  (`MAX_AGE_HOURS` in `app/ingest/sync.py`). A background task inside the
+  app checks hourly for sources whose cache has gone stale and refreshes
+  only those — so store feeds see one request per day per source, no
+  matter how many people are browsing.
+- `python -m app.ingest.sync` respects the same freshness window (making
+  an external cron job a safe alternative); `--force` refreshes
+  everything immediately.
+- Set `PODFINDER_AUTO_SYNC=0` to disable the in-app scheduler if you'd
+  rather drive syncs from cron alone.
+- Read endpoints send `Cache-Control: public, max-age=3600`, so a CDN or
+  reverse proxy in front of the app can absorb repeated queries too.
 
 ## Quick start
 
@@ -74,8 +107,10 @@ game, format, date, and store.
    python -m app.ingest.sync
    ```
 
-3. Re-run the sync on a schedule (it's idempotent — events are upserted by
-   their feed UID). For example, hourly via cron:
+3. That's it — while the app is running it refreshes each source
+   automatically once a day. If you'd rather control the schedule
+   yourself, set `PODFINDER_AUTO_SYNC=0` and run the sync from cron
+   (it's idempotent, and skips sources fresher than 24h anyway):
 
    ```
    0 * * * * cd /path/to/podfinder && .venv/bin/python -m app.ingest.sync
@@ -93,7 +128,8 @@ app/
   ingest/
     base.py         adapter interface (RawEvent, SourceAdapter)
     ics_source.py   ICS/iCal feed adapter (handles recurring events)
-    sync.py         sync all enabled sources (run from cron)
+    jsonld_source.py  schema.org Event scraper for stores without feeds
+    sync.py         daily cache refresh of all enabled sources
   templates/        Jinja2 HTML templates
   static/           CSS
 data/

@@ -11,9 +11,10 @@ checking five different store calendars.</p>
   <li>Each store gets an <strong>event source</strong> — usually the ICS
   calendar feed their website already publishes (Google Calendar,
   Squarespace, and Wix all expose one).</li>
-  <li>A sync job (<code>python -m app.ingest.sync</code>) polls every feed,
-  expands recurring events, and classifies each one by game and format
-  from its title — "Wednesday Night EDH" becomes
+  <li>A sync job refreshes each feed <strong>at most once a day</strong> into
+  a local cache — browsing never hits store websites directly. It expands
+  recurring events and classifies each one by game and format from its
+  title — "Wednesday Night EDH" becomes
   <em>Magic: The Gathering / Commander / Casual</em>.</li>
   <li>Everything lands in one database you can filter by game, format,
   date, store, and <strong>distance</strong> — enter a ZIP code or use your

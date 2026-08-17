@@ -73,3 +73,71 @@ def test_expands_weekly_recurrence():
     assert all(
         event.end_time - event.start_time == timedelta(hours=2) for event in events
     )
+
+
+TZ_EVENT_ICS = """BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Test//Test//EN
+BEGIN:VEVENT
+UID:tz-1@example.com
+SUMMARY:UTC Commander Night
+DTSTART:20260819T230000Z
+END:VEVENT
+END:VCALENDAR
+"""
+
+ALL_DAY_ICS = """BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Test//Test//EN
+BEGIN:VEVENT
+UID:allday-1@example.com
+SUMMARY:Prerelease Weekend
+DTSTART;VALUE=DATE:20260822
+END:VEVENT
+END:VCALENDAR
+"""
+
+
+def test_timezone_aware_start_normalized_to_naive():
+    events = parse_ics(TZ_EVENT_ICS, now=datetime(2026, 8, 17, 9, 0))
+    assert len(events) == 1
+    assert events[0].start_time.tzinfo is None
+
+
+def test_all_day_event_lands_at_noon():
+    events = parse_ics(ALL_DAY_ICS, now=datetime(2026, 8, 17, 9, 0))
+    assert len(events) == 1
+    assert events[0].start_time == datetime(2026, 8, 22, 12, 0)
+
+
+def test_adapter_fetch(monkeypatch):
+    from app.ingest import ics_source
+    from app.models import EventSource
+
+    class FakeResponse:
+        text = SINGLE_EVENT_ICS.format(start="20991231T180000", end="20991231T210000")
+
+        def raise_for_status(self):
+            pass
+
+    calls = {}
+
+    def fake_get(url, **kwargs):
+        calls["url"] = url
+        return FakeResponse()
+
+    monkeypatch.setattr(ics_source.httpx, "get", fake_get)
+    adapter = ics_source.IcsAdapter()
+    source = EventSource(id=1, store_id=1, kind="ics", url="https://example.com/cal.ics")
+    adapter.fetch(source)  # events far in the future get windowed out; just exercise the path
+    assert calls["url"] == "https://example.com/cal.ics"
+
+
+def test_adapter_requires_url():
+    import pytest
+
+    from app.ingest.ics_source import IcsAdapter
+    from app.models import EventSource
+
+    with pytest.raises(ValueError):
+        IcsAdapter().fetch(EventSource(id=1, store_id=1, kind="ics", url=None))

@@ -1,12 +1,5 @@
 """End-to-end smoke tests against a temporary database."""
 
-import os
-import tempfile
-
-# Point the app at a throwaway database before importing it.
-_db_file = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
-os.environ["PODFINDER_DB"] = f"sqlite:///{_db_file.name}"
-
 from datetime import datetime, timedelta
 
 import pytest
@@ -175,6 +168,29 @@ def test_date_range_filter(client):
     titles = {event["title"] for event in data}
     assert "Commander Night" in titles
     assert "Modern RCQ" not in titles
+
+
+def test_when_presets_and_bad_params_dont_crash(client):
+    for query in (
+        "/?when=today",
+        "/?when=week",
+        "/?when=weekend",
+        "/?loc=62701&radius=abc",   # bad radius falls back to default
+        "/?day=99",                  # out-of-range day is ignored
+        "/?date_from=not-a-date",
+    ):
+        assert client.get(query).status_code == 200
+
+
+def test_api_responses_are_cacheable(client):
+    # Data only changes on the daily source refresh, so read endpoints
+    # advertise themselves as cacheable to clients/CDNs.
+    response = client.get("/api/events")
+    assert response.headers["cache-control"] == "public, max-age=3600"
+    response = client.get("/events.ics")
+    assert response.headers["cache-control"] == "public, max-age=3600"
+    # HTML pages are not cached (they carry per-request filter state).
+    assert "cache-control" not in client.get("/").headers
 
 
 def test_map_view_renders(client):

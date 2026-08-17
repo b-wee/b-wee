@@ -5,6 +5,8 @@ Run the dev server:
     uvicorn app.main:app --reload
 """
 
+import asyncio
+import os
 from contextlib import asynccontextmanager
 from datetime import date, datetime, timedelta
 from pathlib import Path
@@ -35,13 +37,48 @@ BASE_DIR = Path(__file__).resolve().parent
 DAY_LABELS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
 
+# How often the background task *checks* for stale sources. Each source is
+# only re-fetched once it's older than sync.MAX_AGE_HOURS (daily by default),
+# so store feeds see at most one request per day regardless of app traffic.
+SYNC_CHECK_SECONDS = 3600
+
+
+async def _background_sync_loop() -> None:
+    from app.ingest.sync import sync_all
+
+    while True:
+        try:
+            refreshed = await asyncio.to_thread(sync_all)
+            if refreshed:
+                print(f"Background sync refreshed {refreshed} source(s).")
+        except Exception as error:
+            print(f"Background sync failed: {error}")
+        await asyncio.sleep(SYNC_CHECK_SECONDS)
+
+
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     init_db()
+    sync_task = None
+    if os.environ.get("PODFINDER_AUTO_SYNC", "1") == "1":
+        sync_task = asyncio.create_task(_background_sync_loop())
     yield
+    if sync_task:
+        sync_task.cancel()
 
 
 app = FastAPI(title="PodFinder", lifespan=lifespan)
+
+
+@app.middleware("http")
+async def cache_headers(request: Request, call_next):
+    """Let clients/CDNs cache read endpoints — the data only changes when
+    a source is re-synced (at most daily), so an hour of caching is safe."""
+    response = await call_next(request)
+    path = request.url.path
+    if path.startswith(("/api/", "/static/")) or path == "/events.ics":
+        response.headers.setdefault("Cache-Control", "public, max-age=3600")
+    return response
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 templates = Jinja2Templates(directory=BASE_DIR / "templates")
 templates.env.globals.update(
