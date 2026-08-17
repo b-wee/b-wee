@@ -78,7 +78,7 @@ of the upstream feeds:
 ```bash
 cd podfinder
 python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 
 python -m app.seed          # load sample stores + 4 weeks of sample events
 uvicorn app.main:app --reload
@@ -142,6 +142,23 @@ tests/              pytest suite (classifier, ICS parsing, app routes)
 ```bash
 python -m pytest
 ```
+
+## Hosting the demo on Vercel
+
+The repo is pre-configured for Vercel's Python runtime (`vercel.json` +
+`api/index.py`). To put the demo online:
+
+1. Go to [vercel.com/new](https://vercel.com/new) and import the
+   `b-wee/b-wee` GitHub repository (sign in with GitHub).
+2. When asked for the **Root Directory**, set it to `podfinder`.
+3. Click **Deploy**. That's it — no environment variables needed.
+
+You'll get a public `*.vercel.app` URL. On each cold start the demo
+seeds itself with the sample stores and four weeks of events (the
+database lives in the instance's ephemeral `/tmp`), so there are always
+upcoming events to browse. Feed syncing is disabled on Vercel — a real
+deployment would run `python -m app.ingest.sync` from a scheduled
+job/cron against persistent storage instead.
 
 ## Ideas for what to build next
 
