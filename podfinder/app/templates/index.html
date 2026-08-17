@@ -4,73 +4,171 @@
 <h1>Upcoming events</h1>
 
 <form class="filters" method="get" action="/">
-  <select name="game">
-    <option value="">All games</option>
-    {% for key, label in game_labels.items() %}
-    <option value="{{ key }}" {% if filters.game == key %}selected{% endif %}>{{ label }}</option>
-    {% endfor %}
-  </select>
+  <div class="filter-row">
+    <input type="search" name="loc" id="loc-input" placeholder="ZIP code (e.g. 62701)"
+           value="{{ filters.loc or '' }}" {% if location_error %}class="input-error"{% endif %}>
+    <button type="button" id="use-location" title="Use my location">📍 Near me</button>
+    <select name="radius">
+      {% for miles in radius_choices %}
+      <option value="{{ miles }}" {% if filters.radius == miles|string %}selected{% endif %}>Within {{ miles }} mi</option>
+      {% endfor %}
+    </select>
+    <select name="sort">
+      <option value="time" {% if filters.sort == "time" %}selected{% endif %}>Soonest first</option>
+      <option value="distance" {% if filters.sort == "distance" %}selected{% endif %}>Nearest first</option>
+    </select>
+  </div>
 
-  <select name="format">
-    <option value="">All formats</option>
-    {% for key, label in format_labels.items() %}
-    <option value="{{ key }}" {% if filters.format == key %}selected{% endif %}>{{ label }}</option>
-    {% endfor %}
-  </select>
+  <div class="filter-row">
+    <select name="game">
+      <option value="">All games</option>
+      {% for key, label in game_labels.items() %}
+      <option value="{{ key }}" {% if filters.game == key %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
 
-  <select name="store">
-    <option value="">All stores</option>
-    {% for store in stores %}
-    <option value="{{ store.slug }}" {% if filters.store == store.slug %}selected{% endif %}>{{ store.name }}</option>
-    {% endfor %}
-  </select>
+    <select name="format">
+      <option value="">All formats</option>
+      {% for key, label in format_labels.items() %}
+      <option value="{{ key }}" {% if filters.format == key %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
 
-  <select name="when">
-    <option value="">Any time</option>
-    <option value="today" {% if filters.when == "today" %}selected{% endif %}>Today</option>
-    <option value="week" {% if filters.when == "week" %}selected{% endif %}>Next 7 days</option>
-    <option value="weekend" {% if filters.when == "weekend" %}selected{% endif %}>This weekend</option>
-  </select>
+    <select name="store">
+      <option value="">All stores</option>
+      {% for store in stores %}
+      <option value="{{ store.slug }}" {% if filters.store == store.slug %}selected{% endif %}>{{ store.name }}</option>
+      {% endfor %}
+    </select>
 
-  <label class="checkbox">
-    <input type="checkbox" name="casual" value="1" {% if filters.casual == "1" %}checked{% endif %}>
-    Casual only
-  </label>
+    <select name="when">
+      <option value="">Any time</option>
+      <option value="today" {% if filters.when == "today" %}selected{% endif %}>Today</option>
+      <option value="week" {% if filters.when == "week" %}selected{% endif %}>Next 7 days</option>
+      <option value="weekend" {% if filters.when == "weekend" %}selected{% endif %}>This weekend</option>
+    </select>
 
-  <input type="search" name="q" placeholder="Search titles…" value="{{ filters.q or '' }}">
-  <button type="submit">Filter</button>
-  <a class="clear" href="/">Clear</a>
+    <select name="day">
+      <option value="">Any day</option>
+      {% for label in day_labels %}
+      <option value="{{ loop.index0 }}" {% if filters.day == loop.index0|string %}selected{% endif %}>{{ label }}s</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="filter-row">
+    <label>From <input type="date" name="date_from" value="{{ filters.date_from or '' }}"></label>
+    <label>To <input type="date" name="date_to" value="{{ filters.date_to or '' }}"></label>
+    <label class="checkbox">
+      <input type="checkbox" name="casual" value="1" {% if filters.casual == "1" %}checked{% endif %}>
+      Casual only
+    </label>
+    <label class="checkbox">
+      <input type="checkbox" name="free" value="1" {% if filters.free == "1" %}checked{% endif %}>
+      Free only
+    </label>
+    <input type="search" name="q" placeholder="Search titles…" value="{{ filters.q or '' }}">
+    <button type="submit">Filter</button>
+    <a class="clear" href="/">Clear</a>
+  </div>
 </form>
 
-{% if events %}
-<ul class="event-list">
-  {% for event in events %}
-  <li class="event-card">
-    <div class="event-when">
-      <span class="event-day">{{ event.start_time.strftime("%a") }}</span>
-      <span class="event-date">{{ event.start_time | fmt_date }}</span>
-      <span class="event-time">{{ event.start_time | fmt_time }}</span>
-    </div>
-    <div class="event-body">
-      <h3>
-        {% if event.url %}<a href="{{ event.url }}">{{ event.title }}</a>{% else %}{{ event.title }}{% endif %}
-      </h3>
-      <p class="event-meta">
-        <span class="tag tag-game">{{ game_labels.get(event.game, event.game) }}</span>
-        {% if event.format %}<span class="tag tag-format">{{ format_labels.get(event.format, event.format) }}</span>{% endif %}
-        {% if event.is_casual %}<span class="tag tag-casual">Casual</span>{% else %}<span class="tag tag-comp">Competitive</span>{% endif %}
-        {% if event.entry_fee %}<span class="tag tag-fee">{{ event.entry_fee }}</span>{% endif %}
-      </p>
-      <p class="event-store">
-        <a href="/stores/{{ event.store.slug }}">{{ event.store.name }}</a>
-        · {{ event.store.city }}, {{ event.store.state }}
-      </p>
-    </div>
-  </li>
-  {% endfor %}
-</ul>
-{% else %}
-<p class="empty">No events match those filters. Try clearing them, or run
-<code>python -m app.seed</code> to load sample data.</p>
+{% if location_error %}
+<p class="warning">Couldn't find "{{ filters.loc }}" — enter a 5-digit US ZIP code or use 📍 Near me.</p>
 {% endif %}
+
+<div class="view-bar">
+  <span class="view-toggle">
+    {% set base_query = query_string | replace("view=map", "") | replace("&&", "&") %}
+    <a class="{% if view == 'list' %}active{% endif %}" href="/?{{ base_query }}">☰ List</a>
+    <a class="{% if view == 'map' %}active{% endif %}" href="/?{{ base_query }}{% if base_query %}&{% endif %}view=map">🗺 Map</a>
+  </span>
+  <a class="ics-link" href="/events.ics?{{ query_string }}" title="Subscribe to this filtered view in your calendar app">📅 Export .ics</a>
+</div>
+
+{% if view == "map" %}
+  {% if map_pins %}
+  <div id="map"></div>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script>
+    const pins = {{ map_pins | tojson }};
+    const origin = {{ (origin | list | tojson) if origin else 'null' }};
+    const map = L.map('map');
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+    const bounds = [];
+    for (const pin of pins) {
+      const items = pin.events.map(e =>
+        `<li><a href="/events/${e.id}">${e.title}</a><br><small>${e.start}</small></li>`).join('');
+      L.marker([pin.lat, pin.lon]).addTo(map)
+        .bindPopup(`<strong><a href="/stores/${pin.slug}">${pin.name}</a></strong><ul class="popup-list">${items}</ul>`);
+      bounds.push([pin.lat, pin.lon]);
+    }
+    if (origin) {
+      L.circleMarker(origin, {radius: 7, color: '#1c5d99'}).addTo(map).bindPopup('You are here');
+      bounds.push(origin);
+    }
+    map.fitBounds(bounds, {padding: [40, 40], maxZoom: 13});
+  </script>
+  {% else %}
+  <p class="empty">No events with mapped store locations match those filters.</p>
+  {% endif %}
+{% else %}
+  {% if events %}
+  <ul class="event-list">
+    {% for event in events %}
+    <li class="event-card">
+      <div class="event-when">
+        <span class="event-day">{{ event.start_time.strftime("%a") }}</span>
+        <span class="event-date">{{ event.start_time | fmt_date }}</span>
+        <span class="event-time">{{ event.start_time | fmt_time }}</span>
+      </div>
+      <div class="event-body">
+        <h3><a href="/events/{{ event.id }}">{{ event.title }}</a></h3>
+        <p class="event-meta">
+          <span class="tag tag-game">{{ game_labels.get(event.game, event.game) }}</span>
+          {% if event.format %}<span class="tag tag-format">{{ format_labels.get(event.format, event.format) }}</span>{% endif %}
+          {% if event.is_casual %}<span class="tag tag-casual">Casual</span>{% else %}<span class="tag tag-comp">Competitive</span>{% endif %}
+          {% if event.entry_fee %}<span class="tag tag-fee">{{ event.entry_fee }}</span>{% endif %}
+          {% if event.distance_miles is not none %}<span class="tag tag-distance">{{ "%.1f" | format(event.distance_miles) }} mi</span>{% endif %}
+        </p>
+        <p class="event-store">
+          <a href="/stores/{{ event.store.slug }}">{{ event.store.name }}</a>
+          · {{ event.store.city }}, {{ event.store.state }}
+        </p>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="empty">No events match those filters. Try widening the radius or clearing
+  filters, or run <code>python -m app.seed</code> to load sample data.</p>
+  {% endif %}
+{% endif %}
+
+<script>
+  document.getElementById('use-location').addEventListener('click', function () {
+    const button = this;
+    if (!navigator.geolocation) { alert('Geolocation is not supported by your browser.'); return; }
+    button.disabled = true;
+    button.textContent = '📍 Locating…';
+    navigator.geolocation.getCurrentPosition(
+      function (position) {
+        const lat = position.coords.latitude.toFixed(4);
+        const lon = position.coords.longitude.toFixed(4);
+        document.getElementById('loc-input').value = lat + ',' + lon;
+        button.closest('form').submit();
+      },
+      function () {
+        button.disabled = false;
+        button.textContent = '📍 Near me';
+        alert('Could not get your location. Enter a ZIP code instead.');
+      }
+    );
+  });
+</script>
 {% endblock %}

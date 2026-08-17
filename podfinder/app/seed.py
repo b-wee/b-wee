@@ -49,6 +49,8 @@ def seed() -> None:
             store.city = entry["city"]
             store.state = entry["state"]
             store.website = entry.get("website")
+            store.latitude = entry.get("latitude")
+            store.longitude = entry.get("longitude")
             session.flush()
 
             for source_entry in entry.get("sources", []):

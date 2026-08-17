@@ -5,4 +5,5 @@ sqlalchemy>=2.0
 httpx>=0.27
 icalendar>=5.0
 python-dateutil>=2.9
+zipcodes>=1.2
 pytest>=8.0

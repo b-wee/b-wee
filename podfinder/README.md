@@ -21,8 +21,24 @@ store calendars (ICS feeds)          your browser
 2. The **sync job** polls every feed, expands recurring events ("every
    Wednesday at 6pm"), and classifies each event by keyword — "Wednesday
    Night EDH" becomes *Magic: The Gathering / Commander / Casual*.
-3. The **web app** shows everything in one filterable list, plus a JSON API
-   (`/api/events`, `/api/stores`) if you want to build something on top.
+3. The **web app** shows everything in one filterable list *and* a map view,
+   plus a JSON API (`/api/events`, `/api/stores`) if you want to build
+   something on top.
+
+## Features
+
+- **Distance search** — enter a ZIP code (offline lookup, no API keys) or
+  hit "📍 Near me" (browser geolocation), pick a radius (5–100 miles,
+  default 25), and see how far each event is. Sort by soonest or nearest.
+- **Filters** — game, format, date presets (today / next 7 days / this
+  weekend), custom date range, day of week, casual-only, free-only, and
+  free-text search.
+- **Map view** — matching stores plotted on an OpenStreetMap/Leaflet map,
+  with their upcoming events in each pin's popup.
+- **Event pages** — every event links to a detail page with time, store
+  address, and a map link.
+- **iCal export** — `/events.ics` honors every filter, so you can subscribe
+  to "casual Commander within 25 miles" from your phone's calendar app.
 
 ## Quick start
 
@@ -72,6 +88,7 @@ app/
   main.py           FastAPI routes (web pages + JSON API)
   models.py         SQLAlchemy models: Store, EventSource, Event
   classify.py       keyword classifier: title → game / format / casual
+  geo.py            haversine distance, offline ZIP geocoding, fee parsing
   seed.py           load stores.sample.json + generate sample events
   ingest/
     base.py         adapter interface (RawEvent, SourceAdapter)
@@ -94,8 +111,5 @@ python -m pytest
 
 - **More adapters**: many stores post events only on Facebook or
   Wizards EventLink — each is a new adapter in `app/ingest/`.
-- **Location search**: stores already have lat/long columns; add "within
-  25 miles of me" filtering.
-- **iCal export**: publish your filtered view back out as an ICS feed you
-  can subscribe to on your phone.
 - **Email digest**: "here's this week's Commander events near you."
+- **RSVP / attendance**: let players mark "I'm going" so pods actually fire.

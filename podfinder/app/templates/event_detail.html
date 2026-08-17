@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}{{ event.title }} — PodFinder{% endblock %}
+{% block content %}
+<p><a href="/">&larr; All events</a></p>
+<h1>{{ event.title }}</h1>
+
+<p class="event-meta">
+  <span class="tag tag-game">{{ game_labels.get(event.game, event.game) }}</span>
+  {% if event.format %}<span class="tag tag-format">{{ format_labels.get(event.format, event.format) }}</span>{% endif %}
+  {% if event.is_casual %}<span class="tag tag-casual">Casual</span>{% else %}<span class="tag tag-comp">Competitive</span>{% endif %}
+  {% if event.entry_fee %}<span class="tag tag-fee">{{ event.entry_fee }}</span>{% endif %}
+</p>
+
+<dl class="detail-list">
+  <dt>When</dt>
+  <dd>{{ event.start_time.strftime("%A") }}, {{ event.start_time | fmt_date }}
+      at {{ event.start_time | fmt_time }}
+      {% if event.end_time %} &ndash; {{ event.end_time | fmt_time }}{% endif %}</dd>
+
+  <dt>Where</dt>
+  <dd>
+    <a href="/stores/{{ event.store.slug }}">{{ event.store.name }}</a><br>
+    {{ event.store.address }}{% if event.store.address %}, {% endif %}{{ event.store.city }}, {{ event.store.state }}
+    {% if event.store.latitude is not none and event.store.longitude is not none %}
+    <br><a href="https://www.openstreetmap.org/?mlat={{ event.store.latitude }}&mlon={{ event.store.longitude }}#map=15/{{ event.store.latitude }}/{{ event.store.longitude }}">View on map</a>
+    {% endif %}
+  </dd>
+
+  {% if event.description %}
+  <dt>Details</dt>
+  <dd>{{ event.description }}</dd>
+  {% endif %}
+
+  {% if event.url %}
+  <dt>Event page</dt>
+  <dd><a href="{{ event.url }}">{{ event.url }}</a></dd>
+  {% endif %}
+</dl>
+{% endblock %}
