@@ -1,0 +1,86 @@
+{
+  "_comment": "Sample stores for local development. Replace with your real local stores; add an ICS calendar URL to sources to sync real events. Coordinates power distance filtering and the map view.",
+  "stores": [
+    {
+      "slug": "dragons-hoard",
+      "name": "The Dragon's Hoard",
+      "address": "123 Main St",
+      "city": "Springfield",
+      "state": "IL",
+      "latitude": 39.7990,
+      "longitude": -89.6440,
+      "website": "https://example.com/dragons-hoard",
+      "sources": [],
+      "weekly_events": [
+        {"weekday": 2, "hour": 18, "title": "Wednesday Night Commander", "fee": "$5"},
+        {"weekday": 4, "hour": 19, "title": "FNM Booster Draft", "fee": "$15"},
+        {"weekday": 5, "hour": 12, "title": "Saturday Casual Commander Pods", "fee": "Free"}
+      ]
+    },
+    {
+      "slug": "critical-hit-games",
+      "name": "Critical Hit Games",
+      "address": "456 Oak Ave",
+      "city": "Springfield",
+      "state": "IL",
+      "latitude": 39.7620,
+      "longitude": -89.6880,
+      "website": "https://example.com/critical-hit",
+      "sources": [],
+      "weekly_events": [
+        {"weekday": 1, "hour": 18, "title": "Commander League Night", "fee": "$5"},
+        {"weekday": 3, "hour": 18, "title": "Pokemon TCG Casual Play", "fee": "Free"},
+        {"weekday": 4, "hour": 19, "title": "FNM Modern", "fee": "$10"},
+        {"weekday": 6, "hour": 13, "title": "Board Game Open Play", "fee": "Free"}
+      ]
+    },
+    {
+      "slug": "chatham-cards",
+      "name": "Chatham Cards & Games",
+      "address": "12 Plummer Blvd",
+      "city": "Chatham",
+      "state": "IL",
+      "latitude": 39.6731,
+      "longitude": -89.7037,
+      "website": "https://example.com/chatham-cards",
+      "sources": [],
+      "weekly_events": [
+        {"weekday": 4, "hour": 18, "title": "Friday Commander Casual", "fee": "Free"},
+        {"weekday": 6, "hour": 12, "title": "Lorcana Open Play", "fee": "Free"}
+      ]
+    },
+    {
+      "slug": "mana-well",
+      "name": "The Mana Well",
+      "address": "789 Elm St",
+      "city": "Decatur",
+      "state": "IL",
+      "latitude": 39.8403,
+      "longitude": -88.9548,
+      "website": "https://example.com/mana-well",
+      "sources": [],
+      "weekly_events": [
+        {"weekday": 0, "hour": 18, "title": "Monday EDH Night", "fee": "Free"},
+        {"weekday": 3, "hour": 18, "title": "Lorcana League", "fee": "$5"},
+        {"weekday": 5, "hour": 10, "title": "Standard RCQ Qualifier", "fee": "$25"},
+        {"weekday": 5, "hour": 18, "title": "Commander Chaos - Casual Multiplayer", "fee": "$5"}
+      ]
+    },
+    {
+      "slug": "bloomington-battlegrounds",
+      "name": "Bloomington Battlegrounds",
+      "address": "300 Front St",
+      "city": "Bloomington",
+      "state": "IL",
+      "latitude": 40.4842,
+      "longitude": -88.9937,
+      "website": "https://example.com/battlegrounds",
+      "sources": [],
+      "weekly_events": [
+        {"weekday": 2, "hour": 18, "title": "Commander Night", "fee": "$5"},
+        {"weekday": 4, "hour": 19, "title": "FNM Draft", "fee": "$15"},
+        {"weekday": 6, "hour": 11, "title": "Warhammer 40k Open Play", "fee": "Free"}
+      ]
+    }
+  ]
+}
