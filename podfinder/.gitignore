@@ -6,3 +6,5 @@ venv/
 *.sqlite3
 .pytest_cache/
 .env
+.coverage
+htmlcov/
