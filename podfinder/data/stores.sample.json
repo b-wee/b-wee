@@ -1,0 +1,49 @@
+{
+  "_comment": "Sample stores for local development. Replace with your real local stores; add an ICS calendar URL to sources to sync real events.",
+  "stores": [
+    {
+      "slug": "dragons-hoard",
+      "name": "The Dragon's Hoard",
+      "address": "123 Main St",
+      "city": "Springfield",
+      "state": "IL",
+      "website": "https://example.com/dragons-hoard",
+      "sources": [],
+      "weekly_events": [
+        {"weekday": 2, "hour": 18, "title": "Wednesday Night Commander", "fee": "$5"},
+        {"weekday": 4, "hour": 19, "title": "FNM Booster Draft", "fee": "$15"},
+        {"weekday": 5, "hour": 12, "title": "Saturday Casual Commander Pods", "fee": "Free"}
+      ]
+    },
+    {
+      "slug": "critical-hit-games",
+      "name": "Critical Hit Games",
+      "address": "456 Oak Ave",
+      "city": "Springfield",
+      "state": "IL",
+      "website": "https://example.com/critical-hit",
+      "sources": [],
+      "weekly_events": [
+        {"weekday": 1, "hour": 18, "title": "Commander League Night", "fee": "$5"},
+        {"weekday": 3, "hour": 18, "title": "Pokemon TCG Casual Play", "fee": "Free"},
+        {"weekday": 4, "hour": 19, "title": "FNM Modern", "fee": "$10"},
+        {"weekday": 6, "hour": 13, "title": "Board Game Open Play", "fee": "Free"}
+      ]
+    },
+    {
+      "slug": "mana-well",
+      "name": "The Mana Well",
+      "address": "789 Elm St",
+      "city": "Shelbyville",
+      "state": "IL",
+      "website": "https://example.com/mana-well",
+      "sources": [],
+      "weekly_events": [
+        {"weekday": 0, "hour": 18, "title": "Monday EDH Night", "fee": "Free"},
+        {"weekday": 3, "hour": 18, "title": "Lorcana League", "fee": "$5"},
+        {"weekday": 5, "hour": 10, "title": "Standard RCQ Qualifier", "fee": "$25"},
+        {"weekday": 5, "hour": 18, "title": "Commander Chaos - Casual Multiplayer", "fee": "$5"}
+      ]
+    }
+  ]
+}

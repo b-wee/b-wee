@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Stores — PodFinder{% endblock %}
+{% block content %}
+<h1>Stores</h1>
+<ul class="store-list">
+  {% for store in stores %}
+  <li class="store-card">
+    <h3><a href="/stores/{{ store.slug }}">{{ store.name }}</a></h3>
+    <p>{{ store.address }}{% if store.address %}, {% endif %}{{ store.city }}, {{ store.state }}</p>
+    {% if store.website %}<p><a href="{{ store.website }}">Website</a></p>{% endif %}
+  </li>
+  {% endfor %}
+</ul>
+{% endblock %}

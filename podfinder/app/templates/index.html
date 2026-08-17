@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Upcoming events — PodFinder{% endblock %}
+{% block content %}
+<h1>Upcoming events</h1>
+
+<form class="filters" method="get" action="/">
+  <select name="game">
+    <option value="">All games</option>
+    {% for key, label in game_labels.items() %}
+    <option value="{{ key }}" {% if filters.game == key %}selected{% endif %}>{{ label }}</option>
+    {% endfor %}
+  </select>
+
+  <select name="format">
+    <option value="">All formats</option>
+    {% for key, label in format_labels.items() %}
+    <option value="{{ key }}" {% if filters.format == key %}selected{% endif %}>{{ label }}</option>
+    {% endfor %}
+  </select>
+
+  <select name="store">
+    <option value="">All stores</option>
+    {% for store in stores %}
+    <option value="{{ store.slug }}" {% if filters.store == store.slug %}selected{% endif %}>{{ store.name }}</option>
+    {% endfor %}
+  </select>
+
+  <select name="when">
+    <option value="">Any time</option>
+    <option value="today" {% if filters.when == "today" %}selected{% endif %}>Today</option>
+    <option value="week" {% if filters.when == "week" %}selected{% endif %}>Next 7 days</option>
+    <option value="weekend" {% if filters.when == "weekend" %}selected{% endif %}>This weekend</option>
+  </select>
+
+  <label class="checkbox">
+    <input type="checkbox" name="casual" value="1" {% if filters.casual == "1" %}checked{% endif %}>
+    Casual only
+  </label>
+
+  <input type="search" name="q" placeholder="Search titles…" value="{{ filters.q or '' }}">
+  <button type="submit">Filter</button>
+  <a class="clear" href="/">Clear</a>
+</form>
+
+{% if events %}
+<ul class="event-list">
+  {% for event in events %}
+  <li class="event-card">
+    <div class="event-when">
+      <span class="event-day">{{ event.start_time.strftime("%a") }}</span>
+      <span class="event-date">{{ event.start_time | fmt_date }}</span>
+      <span class="event-time">{{ event.start_time | fmt_time }}</span>
+    </div>
+    <div class="event-body">
+      <h3>
+        {% if event.url %}<a href="{{ event.url }}">{{ event.title }}</a>{% else %}{{ event.title }}{% endif %}
+      </h3>
+      <p class="event-meta">
+        <span class="tag tag-game">{{ game_labels.get(event.game, event.game) }}</span>
+        {% if event.format %}<span class="tag tag-format">{{ format_labels.get(event.format, event.format) }}</span>{% endif %}
+        {% if event.is_casual %}<span class="tag tag-casual">Casual</span>{% else %}<span class="tag tag-comp">Competitive</span>{% endif %}
+        {% if event.entry_fee %}<span class="tag tag-fee">{{ event.entry_fee }}</span>{% endif %}
+      </p>
+      <p class="event-store">
+        <a href="/stores/{{ event.store.slug }}">{{ event.store.name }}</a>
+        · {{ event.store.city }}, {{ event.store.state }}
+      </p>
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="empty">No events match those filters. Try clearing them, or run
+<code>python -m app.seed</code> to load sample data.</p>
+{% endif %}
+{% endblock %}

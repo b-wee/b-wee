@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}About — PodFinder{% endblock %}
+{% block content %}
+<h1>About PodFinder</h1>
+<p>PodFinder aggregates events from local game stores so you can find a
+Commander pod (or a draft, a league night, a board game meetup…) without
+checking five different store calendars.</p>
+
+<h2>How it works</h2>
+<ol>
+  <li>Each store gets an <strong>event source</strong> — usually the ICS
+  calendar feed their website already publishes (Google Calendar,
+  Squarespace, and Wix all expose one).</li>
+  <li>A sync job (<code>python -m app.ingest.sync</code>) polls every feed,
+  expands recurring events, and classifies each one by game and format
+  from its title — "Wednesday Night EDH" becomes
+  <em>Magic: The Gathering / Commander / Casual</em>.</li>
+  <li>Everything lands in one database you can filter by game, format,
+  date, and store.</li>
+</ol>
+
+<h2>Adding your local stores</h2>
+<p>Edit <code>data/stores.sample.json</code> with your real local stores and
+their calendar URLs, then run <code>python -m app.seed</code> followed by
+<code>python -m app.ingest.sync</code>.</p>
+{% endblock %}

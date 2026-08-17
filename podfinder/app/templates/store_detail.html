@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}{{ store.name }} — PodFinder{% endblock %}
+{% block content %}
+<h1>{{ store.name }}</h1>
+<p>{{ store.address }}{% if store.address %}, {% endif %}{{ store.city }}, {{ store.state }}
+{% if store.website %} · <a href="{{ store.website }}">Website</a>{% endif %}</p>
+
+<h2>Upcoming events</h2>
+{% if events %}
+<ul class="event-list">
+  {% for event in events %}
+  <li class="event-card">
+    <div class="event-when">
+      <span class="event-day">{{ event.start_time.strftime("%a") }}</span>
+      <span class="event-date">{{ event.start_time | fmt_date }}</span>
+      <span class="event-time">{{ event.start_time | fmt_time }}</span>
+    </div>
+    <div class="event-body">
+      <h3>{{ event.title }}</h3>
+      <p class="event-meta">
+        <span class="tag tag-game">{{ game_labels.get(event.game, event.game) }}</span>
+        {% if event.format %}<span class="tag tag-format">{{ format_labels.get(event.format, event.format) }}</span>{% endif %}
+        {% if event.is_casual %}<span class="tag tag-casual">Casual</span>{% endif %}
+        {% if event.entry_fee %}<span class="tag tag-fee">{{ event.entry_fee }}</span>{% endif %}
+      </p>
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="empty">No upcoming events for this store.</p>
+{% endif %}
+{% endblock %}
